@@ -9,5 +9,5 @@ enum class TypPasazera {
 };
 
 std::string typPasazeraNaTekst(TypPasazera typ);
-TypPasazera tekstNaTypPasazera(const std::string& str);
+TypPasazera tekstNaTypPasazera(const std::string& strInput); // Przyjmuje const std::string&
 int pobierzPriorytetTypu(TypPasazera typ);
