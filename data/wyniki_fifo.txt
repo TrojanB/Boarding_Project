@@ -1,0 +1,38 @@
+================================================================================
+1. PODSUMOWANIE STATYSTYCZNE METRYK
+================================================================================
+Zastosowana strategia obslugi   : FIFO
+Calkowita liczba pasazerow      : 18000
+Pasazerowie odprawieni na czas  : 15848 (88.0%)
+Pasazerowie spoznieni (No-Show) : 2152 (12.0%)
+
+SREDNI CZAS OCZEKIWANIA WEDLUG GRUP:
+- NIEPELNOSPRAWNY : 1601.9 sek.
+
+- W_CIAZY         : 1614.7 sek.
+
+- VIP             : 1610.7 sek.
+
+- STANDARDOWY     : 1599.1 sek.
+
+
+OGOLNE METRYKI KOLEJKI:
+Sredni czas oczekiwania w kolejce : 1601.4 sek.
+Maksymalny czas oczekiwania        : 1934 sek.
+
+WYKORZYSTANIE POSZCZEGOLNYCH STANOWISK:
+- Stanowisko 1 : 94.4% czasu w uzyciu
+
+- Stanowisko 2 : 95.5% czasu w uzyciu
+
+- Stanowisko 3 : 94.8% czasu w uzyciu
+
+- Stanowisko 4 : 96.3% czasu w uzyciu
+
+- Stanowisko 5 : 92.4% czasu w uzyciu
+
+- Stanowisko 6 : 95.7% czasu w uzyciu
+
+- Stanowisko 7 : 94.0% czasu w uzyciu
+
+================================================================================

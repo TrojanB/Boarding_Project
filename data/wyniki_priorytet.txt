@@ -1,0 +1,38 @@
+================================================================================
+1. PODSUMOWANIE STATYSTYCZNE METRYK
+================================================================================
+Zastosowana strategia obslugi   : PRIORYTETOWA
+Calkowita liczba pasazerow      : 18000
+Pasazerowie odprawieni na czas  : 15785 (87.7%)
+Pasazerowie spoznieni (No-Show) : 2215 (12.3%)
+
+SREDNI CZAS OCZEKIWANIA WEDLUG GRUP:
+- NIEPELNOSPRAWNY : 2.1 sek.
+
+- W_CIAZY         : 2.5 sek.
+
+- VIP             : 4.6 sek.
+
+- STANDARDOWY     : 1693.8 sek.
+
+
+OGOLNE METRYKI KOLEJKI:
+Sredni czas oczekiwania w kolejce : 1312.2 sek.
+Maksymalny czas oczekiwania        : 2044 sek.
+
+WYKORZYSTANIE POSZCZEGOLNYCH STANOWISK:
+- Stanowisko 1 : 94.4% czasu w uzyciu
+
+- Stanowisko 2 : 95.5% czasu w uzyciu
+
+- Stanowisko 3 : 94.9% czasu w uzyciu
+
+- Stanowisko 4 : 96.2% czasu w uzyciu
+
+- Stanowisko 5 : 92.5% czasu w uzyciu
+
+- Stanowisko 6 : 95.6% czasu w uzyciu
+
+- Stanowisko 7 : 94.0% czasu w uzyciu
+
+================================================================================

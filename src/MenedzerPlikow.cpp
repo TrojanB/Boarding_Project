@@ -2,221 +2,212 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <stdexcept>
-#include <algorithm>
 #include <iomanip>
 
-//# ==============================================================================
-//# STRUKTURA PLIKU LOTÓW (loty.txt)
-//# ID_Lotu  Numer_Lotu  ID_Bramki  Kierunek Czas_Otwarcia  Czas_Zamkniecia
-//# ==============================================================================
-
-//# ==============================================================================
-//# STRUKTURA PLIKU ZGLOSZEN (zglozsenia.txt)
-//# ID  ID_Lotu  Czas_Nadejscia  Czas_Obslugi  Priorytet  Typ_Pasazera
-//# ==============================================================================
-
-
-//# ==============================================================================
-//# KONFIGURACJA STANOWISK / BRAMEK (konfiguracja.txt)
-//# ID_Stanowiska  Sredni_Czas_Obslugi
-//# ==============================================================================
-
-std::vector<Lot> MenedzerPlikow::odczytajLoty(const std::string& sciezka) {
-    std::vector<Lot> listaLotow;
+std::vector<Stanowisko> MenedzerPlikow::odczytajKonfiguracje(const std::string& sciezka) {
+    std::vector<Stanowisko> wynik;
     std::ifstream plik(sciezka);
-
     if (!plik.is_open()) {
-        throw std::runtime_error("Nie mozna otworzyc pliku pod sciezka: " + sciezka);
+        std::cerr << "Blad otwarcia pliku konfiguracji: " << sciezka << std::endl;
+        return wynik;
     }
 
     std::string linia;
-    int numerLinii = 0;
-
     while (std::getline(plik, linia)) {
-        numerLinii++;
+        if (linia.empty() || linia[0] == '#') continue;
+        std::stringstream ss(linia);
+        int id;
+        double czas;
+        char separator;
+        if (linia.find(';') != std::string::npos) {
+            ss >> id >> separator >> czas;
+        } else {
+            ss >> id >> czas;
+        }
+        wynik.emplace_back(id, czas);
+    }
+    return wynik;
+}
 
-        // 1. Zamiana twardych spacji (kopiowanych z sieci) na zwykle spacje
-        for (size_t i = 0; i < linia.length(); ++i) {
-            unsigned char c = static_cast<unsigned char>(linia[i]);
-            if (c == 160 || c == 194) {
-                linia[i] = ' ';
+std::vector<Lot> MenedzerPlikow::odczytajLoty(const std::string& sciezka) {
+    std::vector<Lot> wynik;
+    std::ifstream plik(sciezka);
+    if (!plik.is_open()) {
+        std::cerr << "Blad otwarcia pliku lotow: " << sciezka << std::endl;
+        return wynik;
+    }
+
+    std::string linia;
+    while (std::getline(plik, linia)) {
+        if (linia.empty() || linia[0] == '#') continue;
+
+        std::stringstream ss(linia);
+        std::vector<std::string> kolumny;
+        std::string token;
+
+        // Obsługa średników oraz białych znaków (spacji/tabulacji)
+        if (linia.find(';') != std::string::npos) {
+            while (std::getline(ss, token, ';')) {
+                if (!token.empty()) kolumny.push_back(token);
+            }
+        } else {
+            while (ss >> token) {
+                kolumny.push_back(token);
             }
         }
 
-        // 2. Usuniecie spacji/tabulacji z poczatku wiersza
-        size_t start = linia.find_first_not_of(" \t\r\n");
-        if (start == std::string::npos) {
-            continue; // Pusta linia
-        }
-        std::string czystaLinia = linia.substr(start);
-
-        // 3. Ignorowanie komentarzy (#)
-        if (czystaLinia[0] == '#') {
-            continue;
-        }
-
-        // 4. Parsowanie kolumn
-        std::stringstream ss(czystaLinia);
-        int id, idBramki, czasOtwarcia, czasZamkniecia;
-        std::string numerLotu, kierunek;
-
-        if (ss >> id >> numerLotu >> idBramki >> kierunek >> czasOtwarcia >> czasZamkniecia) {
-            listaLotow.emplace_back(id, numerLotu, idBramki, kierunek, czasOtwarcia, czasZamkniecia);
-        } else {
-            std::cerr << "[Ostrzezenie] Pominieto linie nr " << numerLinii 
-                      << " (bledny format): " << linia << "\n";
+        // 6 kolumn: ID_Lotu [0], Numer_Lotu [1], ID_Bramki [2], Kierunek [3], Czas_Otwarcia [4], Czas_Zamkniecia [5]
+        if (kolumny.size() >= 6) {
+            int id = std::stoi(kolumny[0]);
+            int czasZamkniecia = std::stoi(kolumny[5]);
+            wynik.emplace_back(id, czasZamkniecia);
+        } else if (kolumny.size() >= 2) {
+            int id = std::stoi(kolumny[0]);
+            int czasZamkniecia = std::stoi(kolumny.back());
+            wynik.emplace_back(id, czasZamkniecia);
         }
     }
+    return wynik;
+}
 
-    plik.close();
-    return listaLotow;
+static TypPasazera konwertujNaTyp(const std::string& str) {
+    if (str == "NIEPELNOSPRAWNY") return TypPasazera::NIEPELNOSPRAWNY;
+    if (str == "W_CIAZY")         return TypPasazera::W_CIAZY;
+    if (str == "VIP")             return TypPasazera::VIP;
+    return TypPasazera::STANDARDOWY;
 }
 
 std::vector<Pasazer> MenedzerPlikow::odczytajZgloszenia(const std::string& sciezka) {
-    std::vector<Pasazer> listaPasazerow;
+    std::vector<Pasazer> wynik;
     std::ifstream plik(sciezka);
-
     if (!plik.is_open()) {
-        throw std::runtime_error("Nie mozna otworzyc pliku zgłoszen pod sciezka: " + sciezka);
+        std::cerr << "Blad otwarcia pliku zgloszen: " << sciezka << std::endl;
+        return wynik;
     }
 
     std::string linia;
-    int numerLinii = 0;
-
     while (std::getline(plik, linia)) {
-        numerLinii++;
-
-        // Usuwanie UTF-8 BOM w pierwszej linii
-        if (numerLinii == 1 && linia.size() >= 3) {
-            if (static_cast<unsigned char>(linia[0]) == 0xEF &&
-                static_cast<unsigned char>(linia[1]) == 0xBB &&
-                static_cast<unsigned char>(linia[2]) == 0xBF) {
-                linia = linia.substr(3);
-            }
-        }
-
-        // Zamiana niewidocznych znaków na spacje
-        for (size_t i = 0; i < linia.length(); ++i) {
-            unsigned char c = static_cast<unsigned char>(linia[i]);
-            if (c < 32 || c > 126) {
-                linia[i] = ' ';
-            }
-        }
-
-        size_t start = linia.find_first_not_of(" \t\r\n");
-        if (start == std::string::npos) continue; // Pusta linia
-        
-        std::string czystaLinia = linia.substr(start);
-        if (czystaLinia[0] == '#') continue; // Komentarz
-
-        std::stringstream ss(czystaLinia);
-        int id, idLotu, czasPrzybycia, czasObslugi, priorytet;
+        if (linia.empty() || linia[0] == '#') continue;
+        std::stringstream ss(linia);
+        int id, idLotu, czasNadejscia, czasObslugi, priorytet;
         std::string typStr;
 
-        // Parsowanie 6 kolumn: ID, ID_Lotu, Czas_Nadejscia, Czas_Obslugi, Priorytet, Typ_Pasazera
-        if (ss >> id >> idLotu >> czasPrzybycia >> czasObslugi >> priorytet >> typStr) {
-            TypPasazera typ = tekstNaTypPasazera(typStr);
-            listaPasazerow.emplace_back(id, idLotu, czasPrzybycia, czasObslugi, priorytet, typ);
+        if (linia.find(';') != std::string::npos) {
+            char sep;
+            ss >> id >> sep >> idLotu >> sep >> czasNadejscia >> sep >> czasObslugi >> sep >> priorytet >> sep >> typStr;
+        } else {
+            ss >> id >> idLotu >> czasNadejscia >> czasObslugi >> priorytet >> typStr;
         }
-    }
 
-    plik.close();
-    return listaPasazerow;
+        TypPasazera typ = konwertujNaTyp(typStr);
+        wynik.emplace_back(id, idLotu, czasNadejscia, czasObslugi, priorytet, typ);
+    }
+    return wynik;
 }
 
-std::vector<Stanowisko> MenedzerPlikow::odczytajKonfiguracje(const std::string& sciezka) {
-    std::vector<Stanowisko> listaStanowisk;
-    std::ifstream plik(sciezka);
-
-    if (!plik.is_open()) {
-        throw std::runtime_error("Nie mozna otworzyc pliku konfiguracji: " + sciezka);
-    }
-
-    std::string linia;
-    int numerLinii = 0;
-
-    while (std::getline(plik, linia)) {
-        numerLinii++;
-        size_t start = linia.find_first_not_of(" \t\r\n");
-        if (start == std::string::npos || linia[start] == '#' || linia[start] == '/') continue;
-
-        std::stringstream ss(linia.substr(start));
-        int id;
-        double sredniCzas;
-
-        // Wczytujemy tylko 2 kolumny: ID oraz Sredni_Czas_Obslugi
-        if (ss >> id >> sredniCzas) {
-            listaStanowisk.emplace_back(id, sredniCzas);
-        }
-    }
-
-    plik.close();
-    return listaStanowisk;
-}
-
-void MenedzerPlikow::zapiszWyniki(const std::string& sciezka, const Statystyki& stat, int calkowityCzas, const std::string& nazwaStrategii) {
+void MenedzerPlikow::zapiszWyniki(const std::string& sciezka, const Statystyki& statystyki, int calkowityCzas, const std::string& nazwaStrategii) {
     std::ofstream plik(sciezka);
-    if (!plik.is_open()) throw std::runtime_error("Nie mozna utworzyc: " + sciezka);
-
-    int sumaWszystkich = stat.pobierzIloscObsluzonych() + stat.pobierzIloscSpoznionych();
-    double procObsluzonych = sumaWszystkich > 0 ? (100.0 * stat.pobierzIloscObsluzonych() / sumaWszystkich) : 0.0;
-    double procSpoznionych = sumaWszystkich > 0 ? (100.0 * stat.pobierzIloscSpoznionych() / sumaWszystkich) : 0.0;
-
-    // Nagłówek raportu
-    plik << "# ==============================================================================\n";
-    plik << "# PLIK WYJŚCIOWY - WYNIKI SYMULACJI BOARDINGU (" << sciezka << ")\n";
-    plik << "# ==============================================================================\n\n";
+    if (!plik.is_open()) {
+        std::cerr << "Blad otwarcia pliku do zapisu: " << sciezka << std::endl;
+        return;
+    }
 
     plik << "================================================================================\n";
     plik << "1. PODSUMOWANIE STATYSTYCZNE METRYK\n";
     plik << "================================================================================\n";
     plik << "Zastosowana strategia obslugi   : " << nazwaStrategii << "\n";
-    plik << "Calkowita liczba pasazerow      : " << sumaWszystkich << "\n";
-    plik << "Pasazerowie odprawieni na czas  : " << stat.pobierzIloscObsluzonych() 
-         << " (" << std::fixed << std::setprecision(1) << procObsluzonych << "%)\n";
-    plik << "Pasazerowie spoznieni (No-Show) : " << stat.pobierzIloscSpoznionych() 
-         << " (" << std::fixed << std::setprecision(1) << procSpoznionych << "%)\n\n";
 
-    // Średni czas oczekiwania
+    int obsluzeni = statystyki.pobierzIloscObsluzonych();
+    int spoznieni = statystyki.pobierzIloscSpoznionych();
+    int calkowita = obsluzeni + spoznieni;
+    double procObs = calkowita > 0 ? (100.0 * obsluzeni / calkowita) : 0.0;
+    double procSpoz = calkowita > 0 ? (100.0 * spoznieni / calkowita) : 0.0;
+
+    plik << "Calkowita liczba pasazerow      : " << calkowita << "\n";
+    plik << "Pasazerowie odprawieni na czas  : " << obsluzeni << " (" << std::fixed << std::setprecision(1) << procObs << "%)\n";
+    plik << "Pasazerowie spoznieni (No-Show) : " << spoznieni << " (" << procSpoz << "%)\n\n";
+
     plik << "SREDNI CZAS OCZEKIWANIA WEDLUG GRUP:\n";
-    plik << "- NIEPELNOSPRAWNY : " << stat.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::NIEPELNOSPRAWNY) << " sek.\n";
-    plik << "- W_CIAZY         : " << stat.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::W_CIAZY) << " sek.\n";
-    plik << "- VIP             : " << stat.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::VIP) << " sek.\n";
-    plik << "- STANDARDOWY     : " << stat.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::STANDARDOWY) << " sek.\n\n";
+    plik << "- NIEPELNOSPRAWNY : " << statystyki.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::NIEPELNOSPRAWNY) << " sek.\n\n";
+    plik << "- W_CIAZY         : " << statystyki.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::W_CIAZY) << " sek.\n\n";
+    plik << "- VIP             : " << statystyki.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::VIP) << " sek.\n\n";
+    plik << "- STANDARDOWY     : " << statystyki.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::STANDARDOWY) << " sek.\n\n\n";
 
     plik << "OGOLNE METRYKI KOLEJKI:\n";
-    plik << "Sredni czas oczekiwania w kolejce : " << stat.obliczSredniCzasCzekania() << " sek.\n";
-    plik << "Maksymalny czas oczekiwania       : " << stat.pobierzNajdluzszyCzasCzekania() << " sek.\n\n";
+    plik << "Sredni czas oczekiwania w kolejce : " << statystyki.obliczSredniCzasCzekania() << " sek.\n";
+    plik << "Maksymalny czas oczekiwania        : " << statystyki.pobierzNajdluzszyCzasCzekania() << " sek.\n\n";
 
     plik << "WYKORZYSTANIE POSZCZEGOLNYCH STANOWISK:\n";
-    for (const auto& [idStanowiska, czasPracy] : stat.pobierzCzasPracyStanowisk()) {
-        double obciazenie = stat.obliczWykorzystanieStanowiska(idStanowiska, calkowityCzas);
-        plik << "- Stanowisko " << idStanowiska << " : " 
-             << std::fixed << std::setprecision(1) << obciazenie << "% czasu w uzyciu\n";
+    for (const auto& pair : statystyki.pobierzCzasPracyStanowisk()) {
+        double proc = statystyki.obliczWykorzystanieStanowiska(pair.first, calkowityCzas);
+        plik << "- Stanowisko " << pair.first << " : " << std::fixed << std::setprecision(1) << proc << "% czasu w uzyciu\n\n";
     }
-    plik << "\n";
+    plik << "================================================================================\n";
+    plik.close();
+}
 
-    // Tabela
+void MenedzerPlikow::zapiszWynikiPorownawcze(const std::string& sciezka, 
+                                             const Statystyki& statFifo, int czasFifo,
+                                             const Statystyki& statPrio, int czasPrio) {
+    std::ofstream plik(sciezka);
+    if (!plik.is_open()) {
+        std::cerr << "Blad otwarcia pliku do zapisu: " << sciezka << std::endl;
+        return;
+    }
+
     plik << "================================================================================\n";
-    plik << "2. SZCZEGOLOWY DZIENNIK ODPRAWIONYCH PASAZEROW\n";
-    plik << "================================================================================\n";
-    plik << std::left << std::setw(5) << "ID" << std::setw(18) << "Typ_Pasazera" 
-         << std::setw(11) << "Przybycie" << std::setw(8) << "Start" 
-         << std::setw(10) << "Czekanie" << "Stan\n";
+    plik << "               ZESTAWIENIE POROWNAWCZE STRATEGII OBSLUGI BRAMEK                 \n";
+    plik << "================================================================================\n\n";
+
+    plik << std::left << std::setw(38) << "METRYKA" 
+         << std::setw(22) << "STRATEGIA FIFO" 
+         << std::setw(22) << "STRATEGIA PRIORYTETOWA" << "\n";
     plik << "--------------------------------------------------------------------------------\n";
 
-    for (const auto& log : stat.pobierzHistorie()) {
-        std::string status = log.czyObsluzony ? "OBSLUZONY" : "SPOZNIONY (Gate Closure)";
-        std::string startStr = (log.czasRozpoczeciaObslugi == -1) ? "-" : std::to_string(log.czasRozpoczeciaObslugi) + "s";
-        
-        plik << std::left 
-             << std::setw(5)  << log.idPasazera
-             << std::setw(18) << typPasazeraNaTekst(log.typ)
-             << std::setw(11) << (std::to_string(log.czasPrzybycia) + "s")
-             << std::setw(8)  << startStr
-             << std::setw(10) << (std::to_string(log.czasCzekania) + "s")
-             << status << "\n";
-    }
+    int ogolemFifo = statFifo.pobierzIloscObsluzonych() + statFifo.pobierzIloscSpoznionych();
+    int ogolemPrio = statPrio.pobierzIloscObsluzonych() + statPrio.pobierzIloscSpoznionych();
+
+    double procObsFifo = ogolemFifo > 0 ? (100.0 * statFifo.pobierzIloscObsluzonych() / ogolemFifo) : 0;
+    double procObsPrio = ogolemPrio > 0 ? (100.0 * statPrio.pobierzIloscObsluzonych() / ogolemPrio) : 0;
+
+    plik << std::setw(38) << "Calkowity czas symulacji [s]:" 
+         << std::setw(22) << czasFifo 
+         << std::setw(22) << czasPrio << "\n";
+
+    plik << std::setw(38) << "Liczba pasazerow obsluzonych:" 
+         << std::setw(22) << (std::to_string(statFifo.pobierzIloscObsluzonych()) + " (" + std::to_string(procObsFifo).substr(0,4) + "%)")
+         << std::setw(22) << (std::to_string(statPrio.pobierzIloscObsluzonych()) + " (" + std::to_string(procObsPrio).substr(0,4) + "%)") << "\n";
+
+    plik << std::setw(38) << "Liczba pasazerow spoznionych:" 
+         << std::setw(22) << statFifo.pobierzIloscSpoznionych() 
+         << std::setw(22) << statPrio.pobierzIloscSpoznionych() << "\n";
+
+    plik << std::setw(38) << "Sredni czas oczekiwania (ogolny) [s]:" 
+         << std::setw(22) << std::fixed << std::setprecision(1) << statFifo.obliczSredniCzasCzekania()
+         << std::setw(22) << std::fixed << std::setprecision(1) << statPrio.obliczSredniCzasCzekania() << "\n";
+
+    plik << std::setw(38) << "Maksymalny czas oczekiwania [s]:" 
+         << std::setw(22) << statFifo.pobierzNajdluzszyCzasCzekania()
+         << std::setw(22) << statPrio.pobierzNajdluzszyCzasCzekania() << "\n";
+
+    plik << "\nSREDNI CZAS OCZEKIWANIA WEDLUG GRUP [sekundy]:\n";
+    plik << "--------------------------------------------------------------------------------\n";
+    plik << std::setw(38) << "- NIEPELNOSPRAWNY:" 
+         << std::setw(22) << statFifo.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::NIEPELNOSPRAWNY)
+         << std::setw(22) << statPrio.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::NIEPELNOSPRAWNY) << "\n";
+
+    plik << std::setw(38) << "- W_CIAZY:" 
+         << std::setw(22) << statFifo.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::W_CIAZY)
+         << std::setw(22) << statPrio.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::W_CIAZY) << "\n";
+
+    plik << std::setw(38) << "- VIP:" 
+         << std::setw(22) << statFifo.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::VIP)
+         << std::setw(22) << statPrio.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::VIP) << "\n";
+
+    plik << std::setw(38) << "- STANDARDOWY:" 
+         << std::setw(22) << statFifo.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::STANDARDOWY)
+         << std::setw(22) << statPrio.obliczSredniCzasCzekaniaDlaTypu(TypPasazera::STANDARDOWY) << "\n";
+
+    plik << "================================================================================\n";
     plik.close();
 }
