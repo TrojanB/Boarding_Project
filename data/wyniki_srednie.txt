@@ -1,0 +1,26 @@
+================================================================================
+               ZESTAWIENIE POROWNAWCZE STRATEGII OBSLUGI BRAMEK                 
+================================================================================
+
+METRYKA                               STRATEGIA FIFO        STRATEGIA PRIORYTETOWA
+--------------------------------------------------------------------------------
+Calkowity czas symulacji [s]:         48257                 48257                 
+Liczba pasazerow obsluzonych:         8000 (100.%)          8000 (100.%)          
+Liczba pasazerow spoznionych:         0                     0                     
+Sredni czas oczekiwania (ogolny) [s]: 7.0                   7.0                   
+Maksymalny czas oczekiwania [s]:      341                   372                   
+
+LICZBA PASAZEROW WEDLUG GRUP:
+--------------------------------------------------------------------------------
+- NIEPELNOSPRAWNY:                    227                   227                   
+- W_CIAZY:                            393                   393                   
+- VIP:                                947                   947                   
+- STANDARDOWY:                        6433                  6433                  
+
+SREDNI CZAS OCZEKIWANIA WEDLUG GRUP [sekundy]:
+--------------------------------------------------------------------------------
+- NIEPELNOSPRAWNY:                    7.1                   0.3                   
+- W_CIAZY:                            4.0                   0.2                   
+- VIP:                                5.5                   0.7                   
+- STANDARDOWY:                        7.4                   8.5                   
+================================================================================

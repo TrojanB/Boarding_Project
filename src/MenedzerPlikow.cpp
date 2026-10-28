@@ -190,6 +190,24 @@ void MenedzerPlikow::zapiszWynikiPorownawcze(const std::string& sciezka,
          << std::setw(22) << statFifo.pobierzNajdluzszyCzasCzekania()
          << std::setw(22) << statPrio.pobierzNajdluzszyCzasCzekania() << "\n";
 
+    plik << "\nLICZBA PASAZEROW WEDLUG GRUP:\n";
+    plik << "--------------------------------------------------------------------------------\n";
+    plik << std::setw(38) << "- NIEPELNOSPRAWNY:" 
+         << std::setw(22) << statFifo.pobierzIloscDlaTypu(TypPasazera::NIEPELNOSPRAWNY)
+         << std::setw(22) << statPrio.pobierzIloscDlaTypu(TypPasazera::NIEPELNOSPRAWNY) << "\n";
+
+    plik << std::setw(38) << "- W_CIAZY:" 
+         << std::setw(22) << statFifo.pobierzIloscDlaTypu(TypPasazera::W_CIAZY)
+         << std::setw(22) << statPrio.pobierzIloscDlaTypu(TypPasazera::W_CIAZY) << "\n";
+
+    plik << std::setw(38) << "- VIP:" 
+         << std::setw(22) << statFifo.pobierzIloscDlaTypu(TypPasazera::VIP)
+         << std::setw(22) << statPrio.pobierzIloscDlaTypu(TypPasazera::VIP) << "\n";
+
+    plik << std::setw(38) << "- STANDARDOWY:" 
+         << std::setw(22) << statFifo.pobierzIloscDlaTypu(TypPasazera::STANDARDOWY)
+         << std::setw(22) << statPrio.pobierzIloscDlaTypu(TypPasazera::STANDARDOWY) << "\n";
+
     plik << "\nSREDNI CZAS OCZEKIWANIA WEDLUG GRUP [sekundy]:\n";
     plik << "--------------------------------------------------------------------------------\n";
     plik << std::setw(38) << "- NIEPELNOSPRAWNY:" 

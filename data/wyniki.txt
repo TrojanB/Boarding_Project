@@ -10,6 +10,13 @@ Liczba pasazerow spoznionych:         2152                  2215
 Sredni czas oczekiwania (ogolny) [s]: 1601.4                1312.2                
 Maksymalny czas oczekiwania [s]:      1934                  2044                  
 
+LICZBA PASAZEROW WEDLUG GRUP:
+--------------------------------------------------------------------------------
+- NIEPELNOSPRAWNY:                    522                   522                   
+- W_CIAZY:                            885                   885                   
+- VIP:                                2157                  2157                  
+- STANDARDOWY:                        14436                 14436                 
+
 SREDNI CZAS OCZEKIWANIA WEDLUG GRUP [sekundy]:
 --------------------------------------------------------------------------------
 - NIEPELNOSPRAWNY:                    1601.9                2.1                   

@@ -9,8 +9,8 @@
 int main() {
     const std::string plikKonfig = "data/konfiguracja.txt";
     const std::string plikLoty = "data/loty.txt";
-    const std::string plikZgloszenia = "data/zgloszenia.txt";
-    const std::string plikWynikiZbiorcze = "data/wyniki.txt";
+    const std::string plikZgloszenia = "data/zgloszenia_duze.txt";
+    const std::string plikWynikiZbiorcze = "data/wyniki_duze.txt";
 
     try {
         // ---------------------------------------------------------------------

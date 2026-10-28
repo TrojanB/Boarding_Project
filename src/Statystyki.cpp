@@ -87,3 +87,13 @@ double Statystyki::obliczWykorzystanieStanowiska(int idStanowiska, int calkowity
     }
     return 0.0;
 }
+
+int Statystyki::pobierzIloscDlaTypu(TypPasazera typ) const {
+    int licznik = 0;
+    for (const auto& log : historiaPasazerow) {
+        if (log.typ == typ) {
+            licznik++;
+        }
+    }
+    return licznik;
+}

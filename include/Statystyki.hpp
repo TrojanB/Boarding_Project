@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Pasazer.hpp"
 #include "Enums.hpp"
 #include <vector>
@@ -32,6 +33,9 @@ public:
     int pobierzIloscObsluzonych() const;
     int pobierzIloscSpoznionych() const;
     const std::vector<LogPasazera>& pobierzHistorie() const;
+
+    // Metoda zliczająca pasażerów danej grupy
+    int pobierzIloscDlaTypu(TypPasazera typ) const;
 
     // Metody analityczne wywoływane przez MenedzerPlikow
     double obliczSredniCzasCzekaniaDlaTypu(TypPasazera typ) const;
